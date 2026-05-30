@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Compare Colleges — CollegeCompass</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --green: #00C47D;
+      --green-glow: rgba(0,196,125,0.15);
+      --navy: #050F1C;
+      --navy2: #0B1A2E;
+      --card: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --text: #F0EDE6;
+      --muted: rgba(240,237,230,0.5);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--navy);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at 30% 0%, rgba(0,196,125,0.06) 0%, transparent 60%),
+                  radial-gradient(ellipse at 70% 100%, rgba(0,102,255,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      backdrop-filter: blur(24px);
+      background: rgba(5,15,28,0.85);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .logo-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--green); }
+
+    /* PAGE */
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .page-header {
+      margin-bottom: 40px;
+      animation: fadeUp 0.6s ease forwards;
+    }
+
+    .page-tag {
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      color: var(--green);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 40px;
+      font-weight: 700;
+    }
+
+    /* COLLEGE HEADER CARDS */
+    .college-headers {
+      display: grid;
+      gap: 16px;
+      margin-bottom: 32px;
+      animation: fadeUp 0.6s ease 0.1s both;
+    }
+
+    .college-header-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+
+    .college-header-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+
+    .college-header-card:nth-child(1)::before { background: linear-gradient(90deg, #5BA4F5, transparent); }
+    .college-header-card:nth-child(2)::before { background: linear-gradient(90deg, var(--green), transparent); }
+    .college-header-card:nth-child(3)::before { background: linear-gradient(90deg, #F5BD5B, transparent); }
+
+    .college-header-card:hover { border-color: rgba(255,255,255,0.15); }
+
+    .header-logo {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      margin: 0 auto 12px;
+      border: 1px solid var(--border);
+    }
+
+    .logo-iit { background: rgba(24,95,165,0.2); color: #5BA4F5; border-color: rgba(24,95,165,0.3); }
+    .logo-iim { background: rgba(133,79,11,0.2); color: #F5BD5B; border-color: rgba(133,79,11,0.3); }
+    .logo-nit { background: rgba(59,109,17,0.2); color: #7DC85B; border-color: rgba(59,109,17,0.3); }
+    .logo-iiit { background: rgba(83,74,183,0.2); color: #A09CF5; border-color: rgba(83,74,183,0.3); }
+    .logo-bits { background: rgba(83,74,183,0.2); color: #A09CF5; border-color: rgba(83,74,183,0.3); }
+    .logo-private { background: rgba(153,60,29,0.2); color: #F5855B; border-color: rgba(153,60,29,0.3); }
+    .logo-abroad { background: rgba(194,24,91,0.2); color: #F56BAA; border-color: rgba(194,24,91,0.3); }
+    .logo-default { background: rgba(255,255,255,0.06); color: var(--muted); }
+
+    .header-name {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .header-location {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .header-badge {
+      display: inline-block;
+      background: rgba(0,196,125,0.1);
+      color: var(--green);
+      border: 1px solid rgba(0,196,125,0.2);
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 11px;
+    }
+
+    /* COMPARISON TABLE */
+    .compare-sections { display: flex; flex-direction: column; gap: 20px; }
+
+    .compare-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp 0.5s ease forwards;
+    }
+
+    .section-title {
+      padding: 16px 24px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .compare-row {
+      display: grid;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    .compare-row:last-child { border-bottom: none; }
+    .compare-row:hover { background: rgba(255,255,255,0.02); }
+
+    .row-label {
+      padding: 14px 24px;
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      border-right: 1px solid var(--border);
+      background: rgba(255,255,255,0.01);
+    }
+
+    .row-cell {
+      padding: 14px 16px;
+      font-size: 14px;
+      color: var(--text);
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-right: 1px solid var(--border);
+      position: relative;
+    }
+
+    .row-cell:last-child { border-right: none; }
+
+    .row-cell.best {
+      color: var(--green);
+      font-weight: 500;
+    }
+
+    .row-cell.best::after {
+      content: '★';
+      position: absolute;
+      top: 6px; right: 6px;
+      font-size: 9px;
+      color: var(--green);
+      opacity: 0.6;
+    }
+
+    .yes { color: var(--green); font-weight: 500; }
+    .no { color: rgba(255,100,100,0.8); }
+
+    /* BAR VISUALIZATION */
+    .bar-cell {
+      flex-direction: column;
+      gap: 4px;
+      padding: 10px 16px;
+    }
+
+    .bar-val { font-size: 14px; font-weight: 500; }
+
+    .bar-track {
+      width: 80%;
+      height: 4px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--green);
+      transform-origin: left;
+      transform: scaleX(0);
+      transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .bar-fill.animated { transform: scaleX(1); }
+
+    /* WINNER BANNER */
+    .winner-banner {
+      background: linear-gradient(135deg, rgba(0,196,125,0.12), rgba(0,196,125,0.04));
+      border: 1px solid rgba(0,196,125,0.25);
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      animation: fadeUp 0.6s ease 0.3s both;
+    }
+
+    .winner-icon { font-size: 28px; flex-shrink: 0; }
+
+    .winner-text h3 {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .winner-text p {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* EMPTY STATE */
+    .empty-state {
+      text-align: center;
+      padding: 100px 24px;
+    }
+
+    .empty-icon { font-size: 56px; display: block; margin-bottom: 20px; }
+
+    .empty-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .empty-sub { color: var(--muted); font-size: 15px; margin-bottom: 28px; }
+
+    .go-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green);
+      color: var(--navy);
+      text-decoration: none;
+      padding: 12px 28px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .go-back-btn:hover { background: #00E090; transform: translateY(-2px); }
+
+    .clear-btn {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 12px 24px;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      margin-top: 16px;
+      display: block;
+      margin-left: auto;
+      transition: all 0.2s;
+    }
+
+    .clear-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .page { padding: 24px 16px; }
+      .compare-row { grid-template-columns: 1fr !important; }
+      .row-label { border-right: none; border-bottom: 1px solid var(--border); }
+      .row-cell { border-right: none !important; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="landing.html" class="logo">
+      <div class="logo-dot"></div>
+      CollegeCompass
+    </a>
+    <a href="index.html" class="back-link">← Back to search</a>
+  </nav>
+
+  <div class="page" id="page-content">
+    <div class="loading" style="text-align:center;padding:80px;color:var(--muted)">Loading comparison...</div>
+  </div>
+
+  <script>
+    const compareList = JSON.parse(localStorage.getItem('compareList') || '[]');
+
+    function getLogoClass(type) {
+      return { IIT:'logo-iit', IIM:'logo-iim', NIT:'logo-nit', IIIT:'logo-iiit', deemed:'logo-bits', private:'logo-private', abroad:'logo-abroad', state:'logo-default' }[type] || 'logo-default';
+    }
+
+    function getAbbr(name, type) {
+      if (['IIT','IIM','NIT','IIIT'].includes(type)) return type;
+      return name.split(' ').map(w=>w[0]).join('').slice(0,3).toUpperCase();
+    }
+
+    function formatFees(f) {
+      if (!f) return '—';
+      if (f >= 100000) return '₹' + (f/100000).toFixed(1) + 'L/yr';
+      return '₹' + (f/1000).toFixed(0) + 'K/yr';
+    }
+
+    async function loadComparison() {
+      const page = document.getElementById('page-content');
+
+      if (compareList.length < 2) {
+        page.innerHTML = `
+          <div class="empty-state">
+            <span class="empty-icon">⚖️</span>
+            <div class="empty-title">Nothing to compare yet</div>
+            <div class="empty-sub">Go back and click "+ Compare" on at least 2 colleges</div>
+            <a href="index.html" class="go-back-btn">← Browse colleges</a>
+          </div>`;
+        return;
+      }
+
+      try {
+        const res = await fetch('http://localhost:3000/colleges/compare', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: compareList.map(c => c.id) })
+        });
+        const data = await res.json();
+        const colleges = data.data;
+
+        const count = colleges.length;
+        const labelWidth = '180px';
+        const colWidth = `${Math.floor((100 - 180/11) / count)}%`;
+
+        // Find bests
+        const bestPackage = Math.max(...colleges.map(c => parseFloat(c.avg_package_lpa) || 0));
+        const bestPlacement = Math.max(...colleges.map(c => parseFloat(c.placement_percentage) || 0));
+        const lowestFees = Math.min(...colleges.map(c => parseFloat(c.fees_per_year) || Infinity));
+        const bestResearch = Math.max(...colleges.map(c => parseInt(c.research_score) || 0));
+        const bestNirf = Math.min(...colleges.map(c => parseInt(c.nirf_rank) || 999));
+        const maxPackage = bestPackage;
+
+        // Determine winner (most "bests")
+        const scores = colleges.map(c => {
+          let s = 0;
+          if (parseFloat(c.avg_package_lpa) === bestPackage) s++;
+          if (parseFloat(c.placement_percentage) === bestPlacement) s++;
+          if (parseFloat(c.fees_per_year) === lowestFees) s++;
+          if (parseInt(c.nirf_rank) === bestNirf) s++;
+          return s;
+        });
+        const winnerIdx = scores.indexOf(Math.max(...scores));
+        const winner = colleges[winnerIdx];
+
+        function row(label, cells, opts = {}) {
+          const gridCols = `${labelWidth} repeat(${count}, 1fr)`;
+          const cellsHTML = cells.map((val, i) => {
+            const isBest = opts.best && opts.best(colleges[i], colleges);
+            if (opts.bar) {
+              const max = opts.barMax || bestPackage;
+              const num = parseFloat(val) || 0;
+              const pct = max > 0 ? num / max : 0;
+              return `<div class="row-cell bar-cell ${isBest ? 'best' : ''}">
+                <span class="bar-val">${val}</span>
+                <div class="bar-track"><div class="bar-fill" data-pct="${pct}"></div></div>
+              </div>`;
+            }
+            return `<div class="row-cell ${isBest ? 'best' : ''}">${val}</div>`;
+          }).join('');
+          return `<div class="compare-row" style="grid-template-columns:${gridCols}">
+            <div class="row-label">${label}</div>
+            ${cellsHTML}
+          </div>`;
+        }
+
+        page.innerHTML = `
+          <div class="page-header">
+            <span class="page-tag">Side by side</span>
+            <h1 class="page-title">Compare Colleges</h1>
+          </div>
+
+          <div class="winner-banner">
+            <span class="winner-icon">🏆</span>
+            <div class="winner-text">
+              <h3>${winner.name} leads overall</h3>
+              <p>Based on NIRF rank, placements, and fees — highlighted in green throughout.</p>
+            </div>
+          </div>
+
+          <!-- College header cards -->
+          <div class="college-headers" style="grid-template-columns:${labelWidth} repeat(${count}, 1fr)">
+            <div></div>
+            ${colleges.map(c => `
+              <div class="college-header-card">
+                <div class="header-logo ${getLogoClass(c.type)}">${getAbbr(c.name, c.type)}</div>
+                <div class="header-name">${c.name}</div>
+                <div class="header-location">${[c.city, c.country].filter(Boolean).join(', ')}</div>
+                ${c.nirf_rank ? `<div class="header-badge">NIRF #${c.nirf_rank}</div>` : ''}
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="compare-sections">
+
+            <div class="compare-section" style="animation-delay:0.15s">
+              <div class="section-title">Admissions</div>
+              ${row('Cutoff Percentile', colleges.map(c => c.min_percentile ? c.min_percentile + '%+' : '—'))}
+              ${row('Exam', colleges.map(c => c.exam_name || '—'))}
+              ${row('Type', colleges.map(c => c.type.toUpperCase()))}
+            </div>
+
+            <div class="compare-section" style="animation-delay:0.25s">
+              <div class="section-title">Fees & Finances</div>
+              ${row('Fees per Year', colleges.map(c => formatFees(c.fees_per_year)), {
+                best: (c, all) => parseFloat(c.fees_per_year) === lowestFees
+              })}
+            </div>
+
+            <div class="compare-section" style="animation-delay:0.35s">
+              <div class="section-title">Placements (2024)</div>
+              ${row('Avg. Package', colleges.map(c => c.avg_package_lpa ? '₹' + c.avg_package_lpa + 'L' : '—'), {
+                best: (c) => parseFloat(c.avg_package_lpa) === bestPackage,
+                bar: true, barMax: bestPackage
+              })}
+              ${row('Highest Package', colleges.map(c => c.highest_package_lpa ? '₹' + c.highest_package_lpa + 'L' : '—'))}
+              ${row('Placement Rate', colleges.map(c => c.placement_percentage ? c.placement_percentage + '%' : '—'), {
+                best: (c) => parseFloat(c.placement_percentage) === bestPlacement
+              })}
+            </div>
+
+            <div class="compare-section" style="animation-delay:0.45s">
+              <div class="section-title">Campus & Facilities</div>
+              ${row('Research Score', colleges.map(c => c.research_score ? c.research_score + '/100' : '—'), {
+                best: (c) => parseInt(c.research_score) === bestResearch
+              })}
+              ${row('Campus Size', colleges.map(c => c.campus_size_acres ? c.campus_size_acres + ' acres' : '—'))}
+              ${row('Hostel', colleges.map(c => `<span class="${c.has_hostel ? 'yes' : 'no'}">${c.has_hostel ? 'Available' : 'Not Available'}</span>`))}
+              ${row('Intl. Exchange', colleges.map(c => `<span class="${c.has_international_exchange ? 'yes' : 'no'}">${c.has_international_exchange ? 'Available' : 'Not Available'}</span>`))}
+            </div>
+
+          </div>
+
+          <button class="clear-btn" onclick="clearAndGoBack()">← Clear & search again</button>
+        `;
+
+        // Animate bars after render
+        setTimeout(() => {
+          document.querySelectorAll('.bar-fill').forEach(bar => {
+            bar.style.transform = `scaleX(${bar.dataset.pct})`;
+          });
+          document.querySelectorAll('.compare-section').forEach(s => {
+            s.style.opacity = '1';
+            s.style.transform = 'translateY(0)';
+          });
+        }, 100);
+
+      } catch(e) {
+        page.innerHTML = `
+          <div class="empty-state">
+            <span class="empty-icon">⚠️</span>
+            <div class="empty-title">Could not load data</div>
+            <div class="empty-sub">Make sure your backend server is running</div>
+            <a href="index.html" class="go-back-btn">← Go back</a>
+          </div>`;
+      }
+    }
+
+    function clearAndGoBack() {
+      localStorage.removeItem('compareList');
+      window.location.href = 'index.html';
+    }
+
+    loadComparison();
+  </script>
+</body>
+</html>

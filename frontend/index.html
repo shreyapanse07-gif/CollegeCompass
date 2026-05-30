@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Explore Colleges — CollegeCompass</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --green: #00C47D;
+      --green-dark: #00935D;
+      --green-glow: rgba(0,196,125,0.15);
+      --navy: #050F1C;
+      --navy2: #0B1A2E;
+      --card: rgba(255,255,255,0.04);
+      --card-hover: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.08);
+      --border-hover: rgba(0,196,125,0.3);
+      --text: #F0EDE6;
+      --muted: rgba(240,237,230,0.5);
+      --sidebar: 280px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--navy);
+      color: var(--text);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at 20% 0%, rgba(0,196,125,0.07) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 100%, rgba(0,102,255,0.05) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      backdrop-filter: blur(24px);
+      background: rgba(5,15,28,0.85);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .logo-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+
+    .nav-search {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 8px 16px;
+      transition: all 0.2s;
+      min-width: 240px;
+    }
+
+    .nav-search:focus-within {
+      border-color: var(--green);
+      background: rgba(0,196,125,0.05);
+    }
+
+    .nav-search input {
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 13px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      width: 100%;
+    }
+
+    .nav-search input::placeholder { color: var(--muted); }
+
+    .nav-search .icon { color: var(--muted); font-size: 14px; }
+
+    .compare-badge {
+      background: var(--green);
+      color: var(--navy);
+      border: none;
+      padding: 8px 18px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+      display: none;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .compare-badge.visible { display: flex; }
+    .compare-badge:hover { background: #00E090; transform: translateY(-1px); }
+    .compare-badge .count {
+      background: var(--navy);
+      color: var(--green);
+      border-radius: 50%;
+      width: 18px; height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* ── LAYOUT ── */
+    .page-layout {
+      display: grid;
+      grid-template-columns: var(--sidebar) 1fr;
+      min-height: calc(100vh - 57px);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      border-right: 1px solid var(--border);
+      padding: 24px 20px;
+      height: calc(100vh - 57px);
+      overflow-y: auto;
+      position: sticky;
+      top: 57px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .sidebar-title {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .filter-group {
+      margin-bottom: 28px;
+    }
+
+    .filter-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .filter-select {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff50' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+
+    .filter-select:focus {
+      border-color: var(--green);
+      background-color: rgba(0,196,125,0.05);
+    }
+
+    .filter-select option { background: #0B1A2E; }
+
+    .percentile-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .filter-input {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .filter-input:focus {
+      border-color: var(--green);
+      background: rgba(0,196,125,0.05);
+    }
+
+    .filter-input::placeholder { color: var(--muted); }
+
+    /* Checkbox filters */
+    .checkbox-group { display: flex; flex-direction: column; gap: 8px; }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+
+    .checkbox-item:hover { background: var(--card); }
+
+    .checkbox-item input { display: none; }
+
+    .checkbox-box {
+      width: 16px; height: 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+
+    .checkbox-item input:checked + .checkbox-box {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .checkbox-item input:checked + .checkbox-box::after {
+      content: '✓';
+      font-size: 10px;
+      color: var(--navy);
+      font-weight: 700;
+    }
+
+    .checkbox-item .cb-label {
+      font-size: 13px;
+      color: var(--muted);
+      transition: color 0.15s;
+    }
+
+    .checkbox-item:has(input:checked) .cb-label { color: var(--text); }
+
+    .apply-btn {
+      width: 100%;
+      background: var(--green);
+      color: var(--navy);
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+      margin-bottom: 8px;
+    }
+
+    .apply-btn:hover { background: #00E090; transform: translateY(-1px); }
+
+    .clear-btn {
+      width: 100%;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .clear-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 20px 0;
+    }
+
+    /* ── MAIN CONTENT ── */
+    .main-content {
+      padding: 28px 28px 100px;
+    }
+
+    /* Exam chips */
+    .exam-chips-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .exam-chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 7px 16px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .exam-chip:hover {
+      border-color: rgba(0,196,125,0.4);
+      color: var(--text);
+    }
+
+    .exam-chip.active {
+      background: rgba(0,196,125,0.12);
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    /* Results header */
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .results-count {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .results-count strong { color: var(--text); font-weight: 500; }
+
+    .sort-row { display: flex; align-items: center; gap: 10px; }
+
+    .sort-label { font-size: 13px; color: var(--muted); }
+
+    .sort-select {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 13px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      cursor: pointer;
+      background-color: #0B1A2E;
+      outline-color: #0B1A2E;
+    }
+
+    /* ── COLLEGE CARDS ── */
+    .college-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .college-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: cardReveal 0.5s ease forwards;
+    }
+
+    @keyframes cardReveal {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .college-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--green-glow), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .college-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--green), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .college-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-6px) scale(1.01);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 0 1px var(--border-hover);
+    }
+
+    .college-card:hover::before { opacity: 1; }
+    .college-card:hover::after { opacity: 1; }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .card-logo-name { display: flex; align-items: flex-start; gap: 12px; }
+
+    .card-logo {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 12px;
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+      letter-spacing: 0.02em;
+    }
+
+    .logo-iit { background: rgba(24,95,165,0.2); color: #5BA4F5; border-color: rgba(24,95,165,0.3); }
+    .logo-iim { background: rgba(133,79,11,0.2); color: #F5BD5B; border-color: rgba(133,79,11,0.3); }
+    .logo-nit { background: rgba(59,109,17,0.2); color: #7DC85B; border-color: rgba(59,109,17,0.3); }
+    .logo-iiit { background: rgba(83,74,183,0.2); color: #A09CF5; border-color: rgba(83,74,183,0.3); }
+    .logo-bits { background: rgba(83,74,183,0.2); color: #A09CF5; border-color: rgba(83,74,183,0.3); }
+    .logo-private { background: rgba(153,60,29,0.2); color: #F5855B; border-color: rgba(153,60,29,0.3); }
+    .logo-abroad { background: rgba(194,24,91,0.2); color: #F56BAA; border-color: rgba(194,24,91,0.3); }
+    .logo-default { background: rgba(255,255,255,0.06); color: var(--muted); }
+
+    .card-name-wrap { flex: 1; min-width: 0; }
+
+    .card-name {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 3px;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-location {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .card-nirf {
+      font-size: 11px;
+      background: rgba(0,196,125,0.1);
+      color: var(--green);
+      border: 1px solid rgba(0,196,125,0.2);
+      border-radius: 6px;
+      padding: 3px 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* Badges */
+    .card-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 400;
+      border: 1px solid;
+    }
+
+    .badge-exam { background: rgba(0,196,125,0.1); color: #5DCAA5; border-color: rgba(0,196,125,0.2); }
+    .badge-type { background: rgba(255,255,255,0.05); color: var(--muted); border-color: var(--border); }
+    .badge-abroad { background: rgba(194,24,91,0.1); color: #F56BAA; border-color: rgba(194,24,91,0.2); }
+
+    /* Stats row */
+    .card-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      background: rgba(255,255,255,0.02);
+      padding: 10px 8px;
+      text-align: center;
+      transition: background 0.2s;
+    }
+
+    .college-card:hover .stat { background: rgba(255,255,255,0.04); }
+
+    .stat-val {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      display: block;
+    }
+
+    .stat-lbl {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+      display: block;
+    }
+
+    /* Card footer */
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-fees {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .card-fees strong { color: var(--text); font-weight: 500; }
+
+    .compare-toggle {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .compare-toggle:hover {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .compare-toggle.added {
+      background: rgba(0,196,125,0.1);
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    /* Loading skeleton */
+    .skeleton-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .skeleton-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      animation: shimmer 1.5s ease infinite;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    .skeleton-line {
+      background: rgba(255,255,255,0.06);
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 80px 24px;
+    }
+
+    .empty-icon { font-size: 48px; margin-bottom: 16px; display: block; }
+    .empty-title { font-family: 'Playfair Display', serif; font-size: 24px; margin-bottom: 8px; }
+    .empty-sub { color: var(--muted); font-size: 14px; }
+
+    /* ── COMPARE BAR ── */
+    .compare-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 200;
+      background: rgba(11,26,46,0.95);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .compare-bar.visible { transform: translateY(0); }
+
+    .compare-bar-label {
+      font-size: 13px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .compare-slots {
+      display: flex;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .compare-slot {
+      background: var(--card);
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      min-width: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .compare-slot.filled {
+      border-style: solid;
+      border-color: rgba(0,196,125,0.3);
+      background: rgba(0,196,125,0.06);
+      color: var(--text);
+    }
+
+    .slot-remove {
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+
+    .slot-remove:hover { color: #ff6b6b; }
+
+    .compare-go-btn {
+      background: var(--green);
+      color: var(--navy);
+      border: none;
+      border-radius: 10px;
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .compare-go-btn:hover { background: #00E090; transform: translateY(-1px); }
+
+    @media (max-width: 900px) {
+      .page-layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .college-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="landing.html" class="logo">
+      <div class="logo-dot"></div>
+      CollegeCompass
+    </a>
+    <div class="nav-right">
+      <div class="nav-search">
+        <span class="icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Search college, city..." />
+      </div>
+      <button class="compare-badge" id="compare-badge" onclick="goToCompare()">
+        Compare
+        <span class="count" id="compare-count">0</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="page-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-title">Filters</div>
+
+      <div class="filter-group">
+        <span class="filter-label">Entrance Exam</span>
+        <select class="filter-select" id="filter-exam">
+          <option value="">All Exams</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Your Percentile</span>
+        <div class="percentile-row">
+          <input class="filter-input" type="number" id="filter-min" placeholder="Min" min="0" max="100" />
+          <input class="filter-input" type="number" id="filter-max" placeholder="Max" min="0" max="100" />
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="filter-group">
+        <span class="filter-label">Domain</span>
+        <select class="filter-select" id="filter-domain">
+          <option value="">All Domains</option>
+          <option value="engineering">Engineering</option>
+          <option value="management">Management</option>
+          <option value="medical">Medical</option>
+          <option value="design">Design</option>
+          <option value="law">Law</option>
+          <option value="arts">Arts & Humanities</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">College Type</span>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" value="IIT"><div class="checkbox-box"></div><span class="cb-label">IIT</span></label>
+          <label class="checkbox-item"><input type="checkbox" value="NIT"><div class="checkbox-box"></div><span class="cb-label">NIT</span></label>
+          <label class="checkbox-item"><input type="checkbox" value="IIIT"><div class="checkbox-box"></div><span class="cb-label">IIIT</span></label>
+          <label class="checkbox-item"><input type="checkbox" value="IIM"><div class="checkbox-box"></div><span class="cb-label">IIM</span></label>
+          <label class="checkbox-item"><input type="checkbox" value="deemed"><div class="checkbox-box"></div><span class="cb-label">Deemed University</span></label>
+          <label class="checkbox-item"><input type="checkbox" value="private"><div class="checkbox-box"></div><span class="cb-label">Private</span></label>
+          <label class="checkbox-item"><input type="checkbox" value="state"><div class="checkbox-box"></div><span class="cb-label">State Govt.</span></label>
+          <label class="checkbox-item"><input type="checkbox" value="abroad"><div class="checkbox-box"></div><span class="cb-label">Abroad</span></label>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="filter-group">
+        <span class="filter-label">Location</span>
+        <select class="filter-select" id="filter-country">
+          <option value="">All Countries</option>
+          <option value="India">India</option>
+          <option value="Canada">Canada</option>
+          <option value="Singapore">Singapore</option>
+          <option value="Australia">Australia</option>
+          <option value="UK">UK</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Preferences</span>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" id="pref-hostel"><div class="checkbox-box"></div><span class="cb-label">Has hostel</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="pref-exchange"><div class="checkbox-box"></div><span class="cb-label">International exchange</span></label>
+        </div>
+      </div>
+
+      <button class="apply-btn" onclick="applyFilters()">Apply Filters</button>
+      <button class="clear-btn" onclick="clearFilters()">Clear All</button>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+      <!-- Exam chips -->
+      <div class="exam-chips-row" id="exam-chips"></div>
+
+      <!-- Results header -->
+      <div class="results-header">
+        <div class="results-count" id="results-count">Loading colleges...</div>
+        <div class="sort-row">
+          <span class="sort-label">Sort by</span>
+          <select class="sort-select" id="sort-select" onchange="sortColleges()">
+            <option value="nirf">NIRF Rank</option>
+            <option value="package">Avg. Package</option>
+            <option value="fees">Fees ↑</option>
+            <option value="placement">Placement %</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- College grid -->
+      <div class="college-grid" id="college-grid">
+        <!-- Skeleton -->
+        <div class="skeleton-grid" id="skeleton" style="display:contents">
+          ${[...Array(6)].map(() => `
+            <div class="skeleton-card">
+              <div class="skeleton-line" style="height:44px; width:60%; margin-bottom:14px"></div>
+              <div class="skeleton-line" style="height:14px; width:80%"></div>
+              <div class="skeleton-line" style="height:14px; width:50%"></div>
+              <div class="skeleton-line" style="height:60px; margin-top:14px"></div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <!-- Pagination -->
+<div id="pagination" style="
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 32px;
+  padding-bottom: 40px;
+"></div>
+    </main>
+  </div>
+
+  <!-- COMPARE BAR -->
+  <div class="compare-bar" id="compare-bar">
+    <span class="compare-bar-label">Compare:</span>
+    <div class="compare-slots" id="compare-slots"></div>
+    <button class="compare-go-btn" onclick="goToCompare()">Compare Now →</button>
+  </div>
+
+  <script>
+    let allColleges = [];
+    let compareList = JSON.parse(localStorage.getItem('compareList') || '[]');
+    let activeExam = '';
+
+    // ── Helpers ──
+    function getLogoClass(type) {
+      return { IIT:'logo-iit', IIM:'logo-iim', NIT:'logo-nit', IIIT:'logo-iiit', deemed:'logo-bits', private:'logo-private', abroad:'logo-abroad', state:'logo-default' }[type] || 'logo-default';
+    }
+
+    function getAbbr(name, type) {
+      if (['IIT','IIM','NIT','IIIT'].includes(type)) return type;
+      return name.split(' ').map(w=>w[0]).join('').slice(0,3).toUpperCase();
+    }
+
+    function formatFees(f) {
+      if (!f) return '—';
+      if (f >= 100000) return '₹' + (f/100000).toFixed(1) + 'L';
+      return '₹' + (f/1000).toFixed(0) + 'K';
+    }
+
+    // ── Load exams ──
+    async function loadExams() {
+      try {
+        const res = await fetch('http://localhost:3000/colleges/exams/all');
+        const data = await res.json();
+        const chips = document.getElementById('exam-chips');
+        const select = document.getElementById('filter-exam');
+
+        data.data.forEach(exam => {
+          const chip = document.createElement('button');
+          chip.className = 'exam-chip';
+          chip.textContent = exam.name;
+          chip.dataset.exam = exam.name;
+          chip.onclick = () => {
+            document.querySelectorAll('.exam-chip').forEach(c => c.classList.remove('active'));
+            if (activeExam === exam.name) {
+              activeExam = '';
+            } else {
+              chip.classList.add('active');
+              activeExam = exam.name;
+              document.getElementById('filter-exam').value = exam.name;
+            }
+            applyFilters();
+          };
+          chips.appendChild(chip);
+
+          const opt = document.createElement('option');
+          opt.value = exam.name;
+          opt.textContent = exam.name;
+          select.appendChild(opt);
+        });
+      } catch(e) {}
+    }
+
+    // ── Load colleges ──
+    async function loadColleges(params = {}) {
+      const grid = document.getElementById('college-grid');
+      grid.innerHTML = generateSkeletons(6);
+
+      try {
+        const q = new URLSearchParams();
+        if (params.exam) q.append('exam', params.exam);
+        if (params.percentile) q.append('percentile', params.percentile);
+        if (params.domain) q.append('domain', params.domain);
+        if (params.type) q.append('type', params.type);
+        if (params.country) q.append('country', params.country);
+
+        const res = await fetch(`http://localhost:3000/colleges?${q}`);
+        const data = await res.json();
+        allColleges = data.data || [];
+
+        // Apply search filter client-side
+        const search = document.getElementById('search-input').value.toLowerCase();
+        let filtered = allColleges;
+        if (search) {
+          filtered = allColleges.filter(c =>
+            c.name.toLowerCase().includes(search) ||
+            (c.city && c.city.toLowerCase().includes(search)) ||
+            (c.state && c.state.toLowerCase().includes(search))
+          );
+        }
+
+        renderColleges(filtered);
+      } catch(e) {
+        grid.innerHTML = `<div class="empty-state">
+          <span class="empty-icon">⚠️</span>
+          <div class="empty-title">Could not connect</div>
+          <div class="empty-sub">Make sure your server is running on port 3000</div>
+        </div>`;
+      }
+    }
+
+    function generateSkeletons(n) {
+      return Array(n).fill(0).map(() => `
+        <div class="skeleton-card">
+          <div style="display:flex;gap:12px;margin-bottom:14px">
+            <div class="skeleton-line" style="width:44px;height:44px;border-radius:12px;margin:0;flex-shrink:0"></div>
+            <div style="flex:1">
+              <div class="skeleton-line" style="height:15px;width:70%"></div>
+              <div class="skeleton-line" style="height:12px;width:45%"></div>
+            </div>
+          </div>
+          <div class="skeleton-line" style="height:12px;width:55%"></div>
+          <div class="skeleton-line" style="height:56px;margin-top:14px;border-radius:12px"></div>
+          <div class="skeleton-line" style="height:32px;margin-top:14px;border-radius:8px"></div>
+        </div>
+      `).join('');
+    }
+
+    // ── Render cards ──
+    function renderColleges(colleges) {
+      const grid = document.getElementById('college-grid');
+      const count = document.getElementById('results-count');
+
+      if (!colleges || colleges.length === 0) {
+        grid.innerHTML = `<div class="empty-state">
+          <span class="empty-icon">🔍</span>
+          <div class="empty-title">No colleges found</div>
+          <div class="empty-sub">Try adjusting your filters or search term</div>
+        </div>`;
+        count.innerHTML = '<strong>0 colleges</strong> found';
+        return;
+      }
+
+      count.innerHTML = `<strong>${colleges.length} colleges</strong> found`;
+
+      grid.innerHTML = colleges.map((c, i) => {
+        const logo = getLogoClass(c.type);
+        const abbr = getAbbr(c.name, c.type);
+        const inCompare = compareList.some(x => x.id === c.id);
+        const delay = (i % 12) * 50;
+
+        return `
+          <div class="college-card" style="animation-delay:${delay}ms" onclick="goToDetail(${c.id})">
+            <div class="card-header">
+              <div class="card-logo-name">
+                <div class="card-logo ${logo}">${abbr}</div>
+                <div class="card-name-wrap">
+                  <div class="card-name" title="${c.name}">${c.name}</div>
+                  <div class="card-location">${[c.city, c.state || c.country].filter(Boolean).join(', ')}</div>
+                </div>
+              </div>
+              ${c.nirf_rank ? `<div class="card-nirf">#${c.nirf_rank}</div>` : ''}
+            </div>
+
+            <div class="card-badges">
+              ${c.exam_name ? `<span class="badge badge-exam">${c.exam_name}</span>` : ''}
+              <span class="badge badge-type">${c.type.toUpperCase()}</span>
+              ${c.country !== 'India' ? `<span class="badge badge-abroad">${c.country}</span>` : ''}
+            </div>
+
+            <div class="card-stats">
+              <div class="stat">
+                <span class="stat-val">${c.min_percentile ? c.min_percentile + '+' : '—'}</span>
+                <span class="stat-lbl">Cutoff %ile</span>
+              </div>
+              <div class="stat">
+                <span class="stat-val">${c.avg_package_lpa ? '₹' + c.avg_package_lpa + 'L' : '—'}</span>
+                <span class="stat-lbl">Avg. Package</span>
+              </div>
+              <div class="stat">
+                <span class="stat-val">${c.placement_percentage ? c.placement_percentage + '%' : '—'}</span>
+                <span class="stat-lbl">Placement</span>
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <div class="card-fees">Fees <strong>${formatFees(c.fees_per_year)}</strong>/yr</div>
+              <button class="compare-toggle ${inCompare ? 'added' : ''}"
+                onclick="event.stopPropagation(); toggleCompare(${c.id}, '${c.name.replace(/'/g,"\\'")}', this)">
+                ${inCompare ? '✓ Added' : '+ Compare'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ── Filters ──
+    function applyFilters() {
+      const exam = document.getElementById('filter-exam').value || activeExam;
+      const min = document.getElementById('filter-min').value;
+      const domain = document.getElementById('filter-domain').value;
+      const country = document.getElementById('filter-country').value;
+
+      const checkedTypes = [...document.querySelectorAll('.checkbox-group input[type=checkbox]:checked')]
+        .filter(cb => cb.id === undefined || (!cb.id.startsWith('pref-')))
+        .map(cb => cb.value)
+        .filter(v => ['IIT','NIT','IIIT','IIM','deemed','private','state','abroad'].includes(v));
+
+      const type = checkedTypes.length === 1 ? checkedTypes[0] : '';
+
+      loadColleges({ exam, percentile: min, domain, type, country });
+    }
+
+    function clearFilters() {
+      document.getElementById('filter-exam').value = '';
+      document.getElementById('filter-min').value = '';
+      document.getElementById('filter-max').value = '';
+      document.getElementById('filter-domain').value = '';
+      document.getElementById('filter-country').value = '';
+      document.getElementById('search-input').value = '';
+      document.querySelectorAll('.checkbox-group input[type=checkbox]').forEach(cb => cb.checked = false);
+      document.querySelectorAll('.exam-chip').forEach(c => c.classList.remove('active'));
+      activeExam = '';
+      loadColleges();
+    }
+
+    // ── Sort ──
+    function sortColleges() {
+      const sort = document.getElementById('sort-select').value;
+      let sorted = [...allColleges];
+      if (sort === 'nirf') sorted.sort((a,b) => (a.nirf_rank||999)-(b.nirf_rank||999));
+      if (sort === 'package') sorted.sort((a,b) => (b.avg_package_lpa||0)-(a.avg_package_lpa||0));
+      if (sort === 'fees') sorted.sort((a,b) => (a.fees_per_year||0)-(b.fees_per_year||0));
+      if (sort === 'placement') sorted.sort((a,b) => (b.placement_percentage||0)-(a.placement_percentage||0));
+      renderColleges(sorted);
+    }
+
+    // ── Compare ──
+    function toggleCompare(id, name, btn) {
+      const idx = compareList.findIndex(x => x.id === id);
+      if (idx > -1) {
+        compareList.splice(idx, 1);
+        btn.textContent = '+ Compare';
+        btn.classList.remove('added');
+      } else {
+        if (compareList.length >= 3) { alert('Max 3 colleges to compare'); return; }
+        compareList.push({ id, name });
+        btn.textContent = '✓ Added';
+        btn.classList.add('added');
+      }
+      localStorage.setItem('compareList', JSON.stringify(compareList));
+      updateCompareBar();
+    }
+
+    function updateCompareBar() {
+      const bar = document.getElementById('compare-bar');
+      const slots = document.getElementById('compare-slots');
+      const badge = document.getElementById('compare-badge');
+      const badgeCount = document.getElementById('compare-count');
+
+      badgeCount.textContent = compareList.length;
+      if (compareList.length > 0) {
+        badge.classList.add('visible');
+      } else {
+        badge.classList.remove('visible');
+      }
+
+      if (compareList.length === 0) {
+        bar.classList.remove('visible');
+        return;
+      }
+
+      bar.classList.add('visible');
+
+      const slotCount = 3;
+      slots.innerHTML = Array(slotCount).fill(0).map((_, i) => {
+        const c = compareList[i];
+        if (c) {
+          return `<div class="compare-slot filled">
+            <span>${c.name.split(' ').slice(0,3).join(' ')}</span>
+            <span class="slot-remove" onclick="removeFromCompare(${c.id})">✕</span>
+          </div>`;
+        }
+        return `<div class="compare-slot">+ Add college</div>`;
+      }).join('');
+    }
+
+    function removeFromCompare(id) {
+      compareList = compareList.filter(x => x.id !== id);
+      localStorage.setItem('compareList', JSON.stringify(compareList));
+      updateCompareBar();
+      renderColleges(allColleges);
+    }
+
+    // ── Navigation ──
+    function goToDetail(id) { window.location.href = `college.html?id=${id}`; }
+    function goToCompare() {
+      if (compareList.length < 2) { alert('Select at least 2 colleges to compare'); return; }
+      window.location.href = 'compare.html';
+    }
+
+    // ── Search debounce ──
+    let searchTimer;
+    document.getElementById('search-input').addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        const search = document.getElementById('search-input').value.toLowerCase();
+        const filtered = allColleges.filter(c =>
+          c.name.toLowerCase().includes(search) ||
+          (c.city && c.city.toLowerCase().includes(search)) ||
+          (c.state && c.state.toLowerCase().includes(search))
+        );
+        renderColleges(filtered);
+      }, 300);
+    });
+    let currentPage = 1;
+let totalPages = 1;
+
+// Replace your loadColleges function with this updated version
+async function loadColleges(params = {}, page = 1) {
+  const grid = document.getElementById('college-grid');
+  grid.innerHTML = generateSkeletons(6);
+  currentPage = page;
+
+  try {
+    const q = new URLSearchParams();
+    if (params.exam) q.append('exam', params.exam);
+    if (params.percentile) q.append('percentile', params.percentile);
+    if (params.domain) q.append('domain', params.domain);
+    if (params.type) q.append('type', params.type);
+    if (params.country) q.append('country', params.country);
+    q.append('page', page);
+    q.append('limit', 20);
+
+    const res = await fetch(`http://localhost:3000/colleges?${q}`);
+    const data = await res.json();
+    allColleges = data.data || [];
+    totalPages = data.pagination.totalPages;
+
+    const search = document.getElementById('search-input').value.toLowerCase();
+    let filtered = allColleges;
+    if (search) {
+      filtered = allColleges.filter(c =>
+        c.name.toLowerCase().includes(search) ||
+        (c.city && c.city.toLowerCase().includes(search)) ||
+        (c.state && c.state.toLowerCase().includes(search))
+      );
+    }
+
+    renderColleges(filtered, data.pagination);
+    renderPagination(data.pagination);
+
+  } catch(e) {
+    grid.innerHTML = `<div class="empty-state">
+      <span class="empty-icon">⚠️</span>
+      <div class="empty-title">Could not connect</div>
+      <div class="empty-sub">Make sure your server is running on port 3000</div>
+    </div>`;
+  }
+}
+
+// Update renderColleges to accept pagination
+function renderColleges(colleges, pagination = {}) {
+  const grid = document.getElementById('college-grid');
+  const count = document.getElementById('results-count');
+
+  if (!colleges || colleges.length === 0) {
+    grid.innerHTML = `<div class="empty-state">
+      <span class="empty-icon">🔍</span>
+      <div class="empty-title">No colleges found</div>
+      <div class="empty-sub">Try adjusting your filters</div>
+    </div>`;
+    count.innerHTML = '<strong>0 colleges</strong> found';
+    return;
+  }
+
+  const total = pagination.total || colleges.length;
+  count.innerHTML = `<strong>${total} colleges</strong> found · showing page ${pagination.page || 1} of ${pagination.totalPages || 1}`;
+
+  grid.innerHTML = colleges.map((c, i) => {
+    const logo = getLogoClass(c.type);
+    const abbr = getAbbr(c.name, c.type);
+    const inCompare = compareList.some(x => x.id === c.id);
+    const delay = (i % 20) * 40;
+
+    return `
+      <div class="college-card" style="animation-delay:${delay}ms" onclick="goToDetail(${c.id})">
+        <div class="card-header">
+          <div class="card-logo-name">
+            <div class="card-logo ${logo}">${abbr}</div>
+            <div class="card-name-wrap">
+              <div class="card-name" title="${c.name}">${c.name}</div>
+              <div class="card-location">${[c.city, c.state || c.country].filter(Boolean).join(', ')}</div>
+            </div>
+          </div>
+          ${c.nirf_rank ? `<div class="card-nirf">#${c.nirf_rank}</div>` : ''}
+        </div>
+        <div class="card-badges">
+          ${c.exam_name ? `<span class="badge badge-exam">${c.exam_name}</span>` : ''}
+          <span class="badge badge-type">${c.type.toUpperCase()}</span>
+          ${c.country !== 'India' ? `<span class="badge badge-abroad">${c.country}</span>` : ''}
+        </div>
+        <div class="card-stats">
+          <div class="stat">
+            <span class="stat-val">${c.min_percentile ? c.min_percentile + '+' : '—'}</span>
+            <span class="stat-lbl">Cutoff %ile</span>
+          </div>
+          <div class="stat">
+            <span class="stat-val">${c.avg_package_lpa ? '₹' + c.avg_package_lpa + 'L' : '—'}</span>
+            <span class="stat-lbl">Avg. Package</span>
+          </div>
+          <div class="stat">
+            <span class="stat-val">${c.placement_percentage ? c.placement_percentage + '%' : '—'}</span>
+            <span class="stat-lbl">Placement</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-fees">Fees <strong>${formatFees(c.fees_per_year)}</strong>/yr</div>
+          <button class="compare-toggle ${inCompare ? 'added' : ''}"
+            onclick="event.stopPropagation(); toggleCompare(${c.id}, '${c.name.replace(/'/g,"\\'")}', this)">
+            ${inCompare ? '✓ Added' : '+ Compare'}
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Render pagination buttons
+function renderPagination(pagination) {
+  const container = document.getElementById('pagination');
+  if (!pagination || pagination.totalPages <= 1) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const { page, totalPages, hasNext, hasPrev } = pagination;
+
+  let buttons = '';
+
+  // Prev button
+  buttons += `<button onclick="changePage(${page - 1})" 
+    style="padding:8px 16px; border-radius:8px; border:1px solid var(--border); 
+    background:${hasPrev ? 'var(--card)' : 'transparent'}; 
+    color:${hasPrev ? 'var(--text)' : 'var(--muted)'}; 
+    cursor:${hasPrev ? 'pointer' : 'default'}; font-family:DM Sans,sans-serif; font-size:13px;"
+    ${!hasPrev ? 'disabled' : ''}>← Prev</button>`;
+
+  // Page numbers
+  let startPage = Math.max(1, page - 2);
+  let endPage = Math.min(totalPages, page + 2);
+
+  if (startPage > 1) {
+    buttons += pageBtn(1, page);
+    if (startPage > 2) buttons += `<span style="color:var(--muted);padding:0 4px">...</span>`;
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    buttons += pageBtn(i, page);
+  }
+
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) buttons += `<span style="color:var(--muted);padding:0 4px">...</span>`;
+    buttons += pageBtn(totalPages, page);
+  }
+
+  // Next button
+  buttons += `<button onclick="changePage(${page + 1})"
+    style="padding:8px 16px; border-radius:8px; border:1px solid var(--border);
+    background:${hasNext ? 'var(--card)' : 'transparent'};
+    color:${hasNext ? 'var(--text)' : 'var(--muted)'};
+    cursor:${hasNext ? 'pointer' : 'default'}; font-family:DM Sans,sans-serif; font-size:13px;"
+    ${!hasNext ? 'disabled' : ''}>Next →</button>`;
+
+  container.innerHTML = buttons;
+}
+
+function pageBtn(num, current) {
+  const isActive = num === current;
+  return `<button onclick="changePage(${num})"
+    style="width:36px; height:36px; border-radius:8px;
+    border:1px solid ${isActive ? 'var(--green)' : 'var(--border)'};
+    background:${isActive ? 'rgba(0,196,125,0.15)' : 'var(--card)'};
+    color:${isActive ? 'var(--green)' : 'var(--text)'};
+    cursor:pointer; font-family:DM Sans,sans-serif; font-size:13px;
+    font-weight:${isActive ? '500' : '400'}">${num}</button>`;
+}
+
+// Change page
+function changePage(page) {
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+
+  const exam = document.getElementById('filter-exam').value || activeExam;
+  const min = document.getElementById('filter-min').value;
+  const domain = document.getElementById('filter-domain').value;
+  const country = document.getElementById('filter-country').value;
+  const checkedTypes = [...document.querySelectorAll('.checkbox-group input[type=checkbox]:checked')]
+    .filter(cb => ['IIT','NIT','IIIT','IIM','deemed','private','state','abroad'].includes(cb.value))
+    .map(cb => cb.value);
+  const type = checkedTypes.length === 1 ? checkedTypes[0] : '';
+
+  loadColleges({ exam, percentile: min, domain, type, country }, page);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+    // ── Init ──
+    loadExams();
+    loadColleges();
+    updateCompareBar();
+  </script>
+</body>
+</html>

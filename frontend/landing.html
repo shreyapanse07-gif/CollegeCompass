@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CollegeCompass — Find Your Path</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --green: #00C47D;
+      --green-dark: #00935D;
+      --green-glow: rgba(0,196,125,0.18);
+      --navy: #050F1C;
+      --navy2: #0B1A2E;
+      --card: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --text: #F0EDE6;
+      --muted: rgba(240,237,230,0.5);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--navy);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ── ANIMATED BG BLOBS ── */
+    .blob-container {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.12;
+      animation: blobFloat 12s ease-in-out infinite;
+    }
+
+    .blob-1 { width: 600px; height: 600px; background: var(--green); top: -200px; left: -100px; animation-delay: 0s; }
+    .blob-2 { width: 400px; height: 400px; background: #0066FF; top: 40%; right: -100px; animation-delay: -4s; }
+    .blob-3 { width: 300px; height: 300px; background: var(--green); bottom: 10%; left: 30%; animation-delay: -8s; }
+
+    @keyframes blobFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 48px;
+      backdrop-filter: blur(20px);
+      background: rgba(5,15,28,0.6);
+      border-bottom: 1px solid var(--border);
+      animation: slideDown 0.8s ease forwards;
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .logo-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 12px var(--green);
+      animation: pulse 2s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 12px var(--green); }
+      50% { box-shadow: 0 0 24px var(--green), 0 0 40px var(--green-glow); }
+    }
+
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 400;
+      transition: color 0.2s;
+      letter-spacing: 0.02em;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta {
+      background: var(--green);
+      color: var(--navy);
+      border: none;
+      padding: 10px 22px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .nav-cta:hover { background: #00E090; transform: translateY(-1px); box-shadow: 0 8px 24px var(--green-glow); }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 6px 16px;
+      font-size: 13px;
+      color: var(--green);
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.3s forwards;
+      letter-spacing: 0.05em;
+    }
+
+    .hero-tag::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(52px, 8vw, 96px);
+      font-weight: 900;
+      line-height: 1.0;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.5s forwards;
+    }
+
+    .hero-title .accent {
+      color: var(--green);
+      position: relative;
+      display: inline-block;
+    }
+
+    .hero-title .accent::after {
+      content: '';
+      position: absolute;
+      bottom: 4px; left: 0; right: 0;
+      height: 3px;
+      background: var(--green);
+      border-radius: 2px;
+      transform: scaleX(0);
+      animation: lineExpand 0.6s ease 1.2s forwards;
+    }
+
+    @keyframes lineExpand {
+      to { transform: scaleX(1); }
+    }
+
+    .hero-sub {
+      font-size: clamp(16px, 2vw, 20px);
+      color: var(--muted);
+      max-width: 560px;
+      line-height: 1.7;
+      margin-bottom: 48px;
+      font-weight: 300;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.7s forwards;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.9s forwards;
+      margin-bottom: 80px;
+    }
+
+    .btn-primary {
+      background: var(--green);
+      color: var(--navy);
+      border: none;
+      padding: 16px 36px;
+      border-radius: 50px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.25s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      background: #00E090;
+      transform: translateY(-2px);
+      box-shadow: 0 16px 40px var(--green-glow);
+    }
+
+    .btn-primary .arrow {
+      display: inline-block;
+      transition: transform 0.2s;
+    }
+
+    .btn-primary:hover .arrow { transform: translateX(4px); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 16px 36px;
+      border-radius: 50px;
+      font-size: 16px;
+      font-weight: 400;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.25s;
+      text-decoration: none;
+    }
+
+    .btn-secondary:hover {
+      background: var(--card);
+      border-color: rgba(255,255,255,0.2);
+      transform: translateY(-2px);
+    }
+
+    /* ── FLOATING STATS ── */
+    .hero-stats {
+      display: flex;
+      gap: 48px;
+      justify-content: center;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 1.1s forwards;
+    }
+
+    .hero-stat {
+      text-align: center;
+    }
+
+    .hero-stat .num {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--green);
+      display: block;
+    }
+
+    .hero-stat .lbl {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .stat-divider {
+      width: 1px;
+      background: var(--border);
+      height: 48px;
+      align-self: center;
+    }
+
+    /* ── SCROLL INDICATOR ── */
+    .scroll-indicator {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      animation: fadeIn 1s ease 2s forwards;
+    }
+
+    .scroll-indicator span {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 48px;
+      background: linear-gradient(to bottom, var(--green), transparent);
+      animation: scrollPulse 1.5s ease infinite;
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.3; transform: scaleY(1); }
+      50% { opacity: 1; transform: scaleY(1.1); }
+    }
+
+    /* ── HOW IT WORKS ── */
+    .section {
+      position: relative;
+      z-index: 1;
+      padding: 100px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-tag {
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      color: var(--green);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 64px;
+      max-width: 500px;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .step-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 28px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+      cursor: default;
+    }
+
+    .step-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--green-glow), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .step-card:hover {
+      border-color: rgba(0,196,125,0.3);
+      transform: translateY(-4px);
+    }
+
+    .step-card:hover::before { opacity: 1; }
+
+    .step-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 64px;
+      font-weight: 900;
+      color: var(--green);
+      opacity: 0.15;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    .step-icon {
+      font-size: 32px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .step-title {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+
+    .step-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* ── EXAM TICKER ── */
+    .ticker-section {
+      position: relative;
+      z-index: 1;
+      padding: 48px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .ticker-track {
+      display: flex;
+      gap: 40px;
+      animation: ticker 20s linear infinite;
+      width: max-content;
+    }
+
+    .ticker-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      white-space: nowrap;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .ticker-item strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .ticker-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* ── FEATURES ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card.large {
+      grid-column: span 2;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: center;
+    }
+
+    .feature-card::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle at top right, var(--green-glow), transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(0,196,125,0.25);
+      transform: translateY(-3px);
+    }
+
+    .feature-card:hover::after { opacity: 1; }
+
+    .feature-icon {
+      font-size: 28px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .feature-title {
+      font-size: 20px;
+      font-weight: 500;
+      margin-bottom: 10px;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .feature-visual {
+      background: rgba(0,196,125,0.06);
+      border: 1px solid rgba(0,196,125,0.15);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .mini-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .mini-card:hover {
+      background: rgba(0,196,125,0.08);
+      border-color: rgba(0,196,125,0.2);
+      transform: translateX(4px);
+    }
+
+    .mini-card .name { font-weight: 500; }
+    .mini-card .score { color: var(--green); font-weight: 500; }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      position: relative;
+      z-index: 1;
+      margin: 0 24px 100px;
+      background: linear-gradient(135deg, rgba(0,196,125,0.12), rgba(0,102,255,0.06));
+      border: 1px solid rgba(0,196,125,0.2);
+      border-radius: 28px;
+      padding: 80px 48px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, var(--green-glow), transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(32px, 4vw, 56px);
+      font-weight: 900;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .cta-sub {
+      font-size: 18px;
+      color: var(--muted);
+      margin-bottom: 40px;
+      font-weight: 300;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 40px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    footer .logo { font-size: 18px; }
+
+    footer p {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── FLOATING CARDS ── */
+    .floating-cards {
+      position: absolute;
+      right: -40px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      opacity: 0;
+      animation: fadeUp 1s ease 1.3s forwards;
+    }
+
+    .float-card {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 13px;
+      white-space: nowrap;
+      animation: cardFloat 4s ease-in-out infinite;
+    }
+
+    .float-card:nth-child(2) { animation-delay: -1.5s; margin-left: 20px; }
+    .float-card:nth-child(3) { animation-delay: -3s; }
+
+    @keyframes cardFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .float-card .college-name { font-weight: 500; margin-bottom: 4px; }
+    .float-card .college-meta { color: var(--muted); font-size: 11px; }
+    .float-card .match { color: var(--green); font-weight: 600; font-size: 12px; margin-top: 6px; }
+
+    /* ── HERO WRAPPER ── */
+    .hero-inner {
+      position: relative;
+      max-width: 1100px;
+      width: 100%;
+    }
+
+    .hero-text { max-width: 700px; margin: 0 auto; }
+
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+      .nav-links { display: none; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      .feature-card.large { grid-column: span 1; grid-template-columns: 1fr; }
+      footer { flex-direction: column; gap: 12px; text-align: center; }
+      .hero-stats { gap: 24px; }
+      .stat-divider { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="blob-container">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <nav>
+    <a href="landing.html" class="logo">
+      <div class="logo-dot"></div>
+      CollegeCompass
+    </a>
+    <div class="nav-links">
+      <a href="#">How it works</a>
+      <a href="#">Exams</a>
+      <a href="#">Abroad</a>
+      <a href="index.html">Explore</a>
+    </div>
+    <a href="index.html" class="nav-cta">Find My College</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <div class="hero-tag">374+ colleges across India & abroad</div>
+
+        <h1 class="hero-title">
+          Your score.<br>
+          Your <span class="accent">dream</span><br>
+          college.
+        </h1>
+
+        <p class="hero-sub">
+          Enter your exam percentile and discover every college you can get into —
+          ranked, compared, and personalized for you.
+        </p>
+
+        <div class="hero-actions">
+          <a href="index.html" class="btn-primary">
+            Explore Colleges <span class="arrow">→</span>
+          </a>
+          <a href="#how" class="btn-secondary">See how it works</a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="num">374+</span>
+            <span class="lbl">Colleges listed</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="hero-stat">
+            <span class="num">12+</span>
+            <span class="lbl">Entrance exams</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="hero-stat">
+            <span class="num">6</span>
+            <span class="lbl">Domains covered</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="hero-stat">
+            <span class="num">Free</span>
+            <span class="lbl">Always</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-indicator">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- TICKER -->
+  <div class="ticker-section">
+    <div class="ticker-track">
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>JEE Main</strong> Engineering</div>
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>JEE Advanced</strong> IIT Admissions</div>
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>CAT</strong> MBA & Management</div>
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>NEET</strong> Medical Colleges</div>
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>BITSAT</strong> BITS Pilani</div>
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>CUET</strong> Central Universities</div>
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>GATE</strong> Post Graduation</div>
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>SAT</strong> USA & Canada</div>
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>IELTS</strong> UK & Australia</div>
+      <!-- Repeat for seamless loop -->
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>JEE Main</strong> Engineering</div>
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>JEE Advanced</strong> IIT Admissions</div>
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>CAT</strong> MBA & Management</div>
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>NEET</strong> Medical Colleges</div>
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>BITSAT</strong> BITS Pilani</div>
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>CUET</strong> Central Universities</div>
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>GATE</strong> Post Graduation</div>
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>SAT</strong> USA & Canada</div>
+      <div class="ticker-item"><div class="ticker-dot"></div><strong>IELTS</strong> UK & Australia</div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div id="how" class="section reveal">
+    <span class="section-tag">Simple process</span>
+    <h2 class="section-title">Three steps to your college list</h2>
+
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <span class="step-icon">📝</span>
+        <div class="step-title">Enter your score</div>
+        <div class="step-desc">Tell us your exam and percentile. We support JEE, CAT, NEET, BITSAT, CUET, GATE, SAT and more.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <span class="step-icon">🎯</span>
+        <div class="step-title">Set your preferences</div>
+        <div class="step-desc">Filter by domain, college type, location, fees, hostel, placements — whatever matters most to you.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <span class="step-icon">⚖️</span>
+        <div class="step-title">Compare & decide</div>
+        <div class="step-desc">Compare up to 3 colleges side by side on every metric — fees, placements, cutoffs, campus size and more.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <div class="section reveal" style="padding-top:0">
+    <span class="section-tag">What we offer</span>
+    <h2 class="section-title">Everything you need to decide</h2>
+
+    <div class="features-grid">
+      <div class="feature-card large">
+        <div>
+          <span class="feature-icon">🔍</span>
+          <div class="feature-title">Smart percentile matching</div>
+          <div class="feature-desc">
+            Enter your JEE, CAT or NEET score and instantly see every college whose cutoff you meet.
+            No guesswork — just colleges you can actually get into, sorted by best match.
+          </div>
+        </div>
+        <div class="feature-visual">
+          <div class="mini-card">
+            <span class="name">IIT Bombay — CSE</span>
+            <span class="score">99.5%ile</span>
+          </div>
+          <div class="mini-card">
+            <span class="name">IIT Delhi — CSE</span>
+            <span class="score">99.4%ile</span>
+          </div>
+          <div class="mini-card">
+            <span class="name">BITS Pilani — CS</span>
+            <span class="score">380+ BITSAT</span>
+          </div>
+          <div class="mini-card">
+            <span class="name">NIT Trichy — CSE</span>
+            <span class="score">97%ile</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">⚖️</span>
+        <div class="feature-title">Side-by-side compare</div>
+        <div class="feature-desc">Compare any 3 colleges across fees, placements, cutoffs, campus size, hostel, research score and more. The best value is highlighted automatically.</div>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">🌍</span>
+        <div class="feature-title">India & abroad</div>
+        <div class="feature-desc">From IITs and IIMs to University of Toronto, NUS and Imperial College London — discover international options alongside Indian colleges.</div>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">📊</span>
+        <div class="feature-title">Real placement data</div>
+        <div class="feature-desc">See actual average and highest packages, placement percentages for 2024 — not estimates. Make decisions based on real outcomes.</div>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">🏆</span>
+        <div class="feature-title">NIRF rankings</div>
+        <div class="feature-desc">All colleges are tagged with their official 2025 NIRF rank so you always know how they stack up against each other nationally.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section reveal">
+    <h2 class="cta-title">Ready to find your college?</h2>
+    <p class="cta-sub">Join thousands of students who found their perfect match.</p>
+    <a href="index.html" class="btn-primary" style="font-size:18px; padding:18px 48px;">
+      Start Exploring <span class="arrow">→</span>
+    </a>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <a href="landing.html" class="logo">
+      <div class="logo-dot"></div>
+      CollegeCompass
+    </a>
+    <p>Built for Indian students. Data from NIRF 2025.</p>
+  </footer>
+
+  <script>
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+    reveals.forEach(el => observer.observe(el));
+
+    // Counter animation for stats
+    function animateCounter(el, target, suffix = '') {
+      let current = 0;
+      const increment = target / 60;
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+          current = target;
+          clearInterval(timer);
+        }
+        el.textContent = Math.floor(current) + suffix;
+      }, 16);
+    }
+
+    // Trigger counter when hero is visible
+    setTimeout(() => {
+      document.querySelectorAll('.hero-stat .num').forEach(el => {
+        const text = el.textContent;
+        if (text.includes('+')) {
+          const num = parseInt(text);
+          animateCounter(el, num, '+');
+        }
+      });
+    }, 1200);
+  </script>
+</body>
+</html>
