@@ -365,7 +365,7 @@
       if (!id) { window.location.href = 'index.html'; return; }
 
       try {
-        const res = await fetch(`http://localhost:3000/colleges/${id}`);
+        const res = await fetch(`https://collegecompass-production-4bb3.up.railway.app/colleges/${id}`);
         const data = await res.json();
         const c = data.data;
 

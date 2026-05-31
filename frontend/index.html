@@ -893,7 +893,7 @@
     // ── Load exams ──
     async function loadExams() {
       try {
-        const res = await fetch('http://localhost:3000/colleges/exams/all');
+        const res = await fetch('https://collegecompass-production-4bb3.up.railway.app/colleges/exams/all');
         const data = await res.json();
         const chips = document.getElementById('exam-chips');
         const select = document.getElementById('filter-exam');
@@ -937,7 +937,7 @@
         if (params.type) q.append('type', params.type);
         if (params.country) q.append('country', params.country);
 
-        const res = await fetch(`http://localhost:3000/colleges?${q}`);
+        const res = await fetch(`https://collegecompass-production-4bb3.up.railway.app/colleges?${q}`);
         const data = await res.json();
         allColleges = data.data || [];
 
@@ -1186,7 +1186,7 @@ async function loadColleges(params = {}, page = 1) {
     q.append('page', page);
     q.append('limit', 20);
 
-    const res = await fetch(`http://localhost:3000/colleges?${q}`);
+    const res = await fetch(`https://collegecompass-production-4bb3.up.railway.app/colleges?${q}`);
     const data = await res.json();
     allColleges = data.data || [];
     totalPages = data.pagination.totalPages;

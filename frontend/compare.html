@@ -420,7 +420,7 @@
       }
 
       try {
-        const res = await fetch('http://localhost:3000/colleges/compare', {
+        const res = await fetch('https://collegecompass-production-4bb3.up.railway.app/colleges/compare', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ids: compareList.map(c => c.id) })
